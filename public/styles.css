@@ -1,0 +1,122 @@
+:root {
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --text: #16181d;
+  --muted: #5d6370;
+  --border: #dfe2e8;
+  --primary: #1f5fd6;
+  --primary-text: #ffffff;
+  --ok: #117a42;
+  --ok-bg: #e3f5eb;
+  --warn: #8a5a00;
+  --warn-bg: #fff3d6;
+  --err: #b42318;
+  --err-bg: #fde8e6;
+  --radius: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1115;
+    --surface: #181b21;
+    --text: #eceef2;
+    --muted: #9aa1ad;
+    --border: #2a2f38;
+    --primary: #5b8ef0;
+    --primary-text: #0f1115;
+    --ok: #4cc38a;
+    --ok-bg: #12301f;
+    --warn: #f0b73e;
+    --warn-bg: #33270b;
+    --err: #f27c70;
+    --err-bg: #3a1714;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.45;
+}
+button, input, select { font: inherit; color: inherit; }
+button {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+button.primary { background: var(--primary); color: var(--primary-text); border-color: var(--primary); }
+button.danger { color: var(--err); }
+button:disabled { opacity: .5; cursor: default; }
+input, select {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 8px 10px;
+  width: 100%;
+}
+label { display: block; font-size: 14px; color: var(--muted); margin-bottom: 4px; }
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.muted { color: var(--muted); }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+.badge.ok { background: var(--ok-bg); color: var(--ok); }
+.badge.warn { background: var(--warn-bg); color: var(--warn); }
+.badge.err { background: var(--err-bg); color: var(--err); }
+.hidden { display: none !important; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--border); }
+th { color: var(--muted); font-weight: 600; }
+.table-wrap { overflow-x: auto; }
+
+/* ---------- Tablet ---------- */
+.kiosk {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  padding: 24px;
+  gap: 20px;
+}
+.kiosk header { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+.kiosk .clock { font-size: clamp(40px, 8vw, 72px); font-weight: 700; font-variant-numeric: tabular-nums; }
+.kiosk .window { font-size: clamp(18px, 2.4vw, 24px); }
+.kiosk .stage { position: relative; display: grid; place-items: center; }
+.kiosk video {
+  width: min(100%, 640px);
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 24px;
+  transform: scaleX(-1);
+  background: #000;
+  border: 4px solid var(--border);
+}
+.kiosk video.ready { border-color: var(--primary); }
+.kiosk .hint { font-size: clamp(20px, 3vw, 28px); text-align: center; min-height: 2.5em; }
+.kiosk .result {
+  position: fixed; inset: 0; display: grid; place-items: center; text-align: center;
+  padding: 32px; font-size: clamp(28px, 5vw, 48px); font-weight: 700;
+}
+.kiosk .result.ok { background: var(--ok-bg); color: var(--ok); }
+.kiosk .result.err { background: var(--err-bg); color: var(--err); }
+.kiosk .result small { display: block; font-size: .5em; font-weight: 500; margin-top: 12px; }
+
+/* ---------- Painel ---------- */
+.admin { max-width: 1200px; margin: 0 auto; padding: 16px; }
+.admin nav { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 20px; }
+.admin nav button[aria-selected="true"] { background: var(--primary); color: var(--primary-text); border-color: var(--primary); }
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.stat { font-size: 32px; font-weight: 700; }
+.row { display: flex; gap: 8px; align-items: end; flex-wrap: wrap; }
+.row > * { flex: 1 1 160px; }
+.row > button, .row > .badge { flex: 0 0 auto; }
+.stack > * + * { margin-top: 12px; }
+dialog { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text); max-width: 520px; width: calc(100% - 32px); }
+dialog::backdrop { background: rgba(0,0,0,.5); }
+dialog video { width: 100%; border-radius: 12px; transform: scaleX(-1); background: #000; }
+.toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); padding: 10px 16px; border-radius: 8px; background: var(--text); color: var(--bg); z-index: 10; }

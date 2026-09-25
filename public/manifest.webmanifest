@@ -1,0 +1,9 @@
+{
+  "name": "Check-in do Plantão",
+  "short_name": "Plantão",
+  "start_url": "/kiosk",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#0f1115",
+  "theme_color": "#1f5fd6"
+}

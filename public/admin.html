@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Painel do Plantão</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="admin">
+    <section id="login" class="card stack hidden" style="max-width:380px;margin:48px auto">
+      <h1>Painel do Plantão</h1>
+      <form id="login-form" class="stack">
+        <div><label for="password">Senha</label><input id="password" type="password" required autocomplete="current-password"></div>
+        <button class="primary" type="submit">Entrar</button>
+        <div id="login-error" class="badge err hidden"></div>
+      </form>
+    </section>
+
+    <section id="app" class="hidden">
+      <header class="row" style="align-items:center">
+        <h1 style="margin:0">Painel do Plantão</h1>
+        <span id="dry-run" class="badge warn hidden" title="RD_DRY_RUN=true: nenhum lead é alterado no RD">Modo simulação do RD</span>
+        <button id="logout">Sair</button>
+      </header>
+      <nav role="tablist">
+        <button role="tab" data-tab="now" aria-selected="true">Agora</button>
+        <button role="tab" data-tab="brokers">Corretores</button>
+        <button role="tab" data-tab="report">Relatório</button>
+        <button role="tab" data-tab="schedule">Horários</button>
+      </nav>
+
+      <!-- AGORA -->
+      <section data-panel="now" class="stack">
+        <div class="grid">
+          <div class="card"><div class="muted">Horário local</div><div class="stat" id="now-time">--:--</div><div id="now-window" class="muted"></div></div>
+          <div class="card"><div class="muted">Aptos a receber lead agora</div><div class="stat" id="now-eligible">0</div><div id="now-shift" class="muted"></div></div>
+          <div class="card"><div class="muted">Leads distribuídos hoje</div><div class="stat" id="now-leads">0</div><button id="simulate" style="margin-top:8px">Simular lead</button></div>
+        </div>
+        <div class="card stack">
+          <h2 style="margin:0">Check-in manual (contingência)</h2>
+          <p class="muted" style="margin:0">Use quando o tablet falhar ou o corretor não tiver cadastro facial. Fica registrado no histórico.</p>
+          <form id="manual-form" class="row">
+            <div><label for="manual-broker">Corretor</label><select id="manual-broker" required></select></div>
+            <div><label for="manual-note">Motivo</label><input id="manual-note" required maxlength="300" placeholder="Ex.: tablet sem internet"></div>
+            <button class="primary" type="submit">Registrar</button>
+          </form>
+        </div>
+        <div id="now-shifts" class="grid"></div>
+        <div class="card">
+          <h2 style="margin-top:0">Últimos leads</h2>
+          <div class="table-wrap"><table><thead><tr><th>Hora</th><th>Negociação RD</th><th>Corretor</th><th>Status</th></tr></thead><tbody id="leads-body"></tbody></table></div>
+        </div>
+      </section>
+
+      <!-- CORRETORES -->
+      <section data-panel="brokers" class="stack hidden">
+        <div class="card stack">
+          <h2 style="margin:0" id="broker-form-title">Novo corretor</h2>
+          <form id="broker-form" class="row">
+            <input type="hidden" id="broker-id">
+            <div><label for="broker-name">Nome</label><input id="broker-name" required maxlength="120"></div>
+            <div><label for="broker-email">E-mail</label><input id="broker-email" type="email" maxlength="200"></div>
+            <div><label for="broker-manager">Gerente</label><input id="broker-manager" maxlength="120"></div>
+            <div><label for="broker-rd">ID do usuário no RD</label><input id="broker-rd" maxlength="100"></div>
+            <div style="flex:0 0 auto"><label><input type="checkbox" id="broker-active" checked style="width:auto"> Ativo</label></div>
+            <button class="primary" type="submit">Salvar</button>
+            <button type="button" id="broker-cancel" class="hidden">Cancelar</button>
+          </form>
+        </div>
+        <div class="card table-wrap">
+          <table><thead><tr><th>Nome</th><th>Gerente</th><th>RD</th><th>Rosto</th><th>Status</th><th></th></tr></thead><tbody id="brokers-body"></tbody></table>
+        </div>
+      </section>
+
+      <!-- RELATÓRIO -->
+      <section data-panel="report" class="stack hidden">
+        <form id="report-form" class="card row">
+          <div><label for="report-from">De</label><input id="report-from" type="date" required></div>
+          <div><label for="report-to">Até</label><input id="report-to" type="date" required></div>
+          <button class="primary" type="submit">Ver</button>
+          <button type="button" id="report-csv">Exportar Excel (CSV)</button>
+        </form>
+        <div class="card table-wrap">
+          <table><thead><tr><th>Data</th><th>Turno</th><th>Horário</th><th>Corretor</th><th>Gerente</th><th>Método</th><th>Leads</th></tr></thead><tbody id="report-body"></tbody></table>
+        </div>
+      </section>
+
+      <!-- HORÁRIOS -->
+      <section data-panel="schedule" class="stack hidden">
+        <form id="schedule-form" class="card stack">
+          <p class="muted" style="margin:0">Janela de check-in: início e fim (minuto final incluso). "Apto até": horário em que a aptidão expira.</p>
+          <div id="shifts-edit" class="stack"></div>
+          <div>
+            <label>Dias de funcionamento</label>
+            <div id="workdays" class="row" style="gap:12px"></div>
+          </div>
+          <button class="primary" type="submit" style="align-self:start">Salvar horários</button>
+        </form>
+      </section>
+    </section>
+  </main>
+
+  <dialog id="face-dialog">
+    <form method="dialog" class="stack">
+      <h2 style="margin:0">Cadastrar rosto: <span id="face-name"></span></h2>
+      <video id="face-video" playsinline muted></video>
+      <p id="face-hint" class="muted">Carregando câmera…</p>
+      <label style="color:var(--text)"><input type="checkbox" id="face-consent" style="width:auto">
+        O corretor foi informado e <strong>autoriza</strong> o uso da biometria facial exclusivamente para o check-in do plantão (LGPD, art. 11). Pode revogar a qualquer momento.</label>
+      <div class="row">
+        <button type="button" id="face-capture" class="primary" disabled>Capturar 5 amostras</button>
+        <button value="cancel">Fechar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="/js/admin.js"></script>
+</body>
+</html>

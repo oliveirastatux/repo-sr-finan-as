@@ -1,0 +1,27 @@
+{
+  "name": "plantao-checkin",
+  "version": "0.1.0",
+  "description": "Check-in facial de corretores com distribuição automática de leads no RD Station CRM",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning src/index.js",
+    "test": "node --disable-warning=ExperimentalWarning --test test/*.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oliveirastatux/repo-sr-finan-as.git"
+  },
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/oliveirastatux/repo-sr-finan-as/issues"
+  },
+  "homepage": "https://github.com/oliveirastatux/repo-sr-finan-as#readme",
+  "dependencies": {
+    "@vladmandic/face-api": "^1.7.15",
+    "express": "^4.22.3"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=22.13"
+  }
+}

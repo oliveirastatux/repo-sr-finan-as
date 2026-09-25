@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1f5fd6">
+  <title>Check-in do Plantão</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="kiosk">
+    <header>
+      <div>
+        <div class="clock" id="clock">--:--</div>
+        <div class="muted" id="date"></div>
+      </div>
+      <div class="window" id="window">Carregando…</div>
+    </header>
+
+    <section class="stage">
+      <video id="video" playsinline muted></video>
+    </section>
+
+    <div class="hint" id="hint">Preparando câmera…</div>
+
+    <section id="setup" class="card hidden" style="max-width:420px;margin:0 auto">
+      <h2>Configurar tablet</h2>
+      <p class="muted">Informe o código do tablet (KIOSK_TOKEN) fornecido pelo administrador.</p>
+      <form id="setup-form" class="stack">
+        <input id="token" type="password" autocomplete="off" required minlength="16" placeholder="Código do tablet">
+        <button class="primary" type="submit">Salvar</button>
+      </form>
+    </section>
+  </main>
+
+  <div id="result" class="result hidden"></div>
+
+  <script type="module" src="/js/kiosk.js"></script>
+</body>
+</html>
