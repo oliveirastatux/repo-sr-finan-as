@@ -20,6 +20,7 @@ function loadConfig(env = process.env) {
     sessionSecret: env.SESSION_SECRET || '',
     kioskToken: env.KIOSK_TOKEN || '',
     webhookSecret: env.RD_WEBHOOK_SECRET || '',
+    demoMode: bool(env.DEMO_MODE, false),
     face: {
       threshold: num(env.FACE_MATCH_THRESHOLD, 0.5),
       margin: num(env.FACE_MATCH_MARGIN, 0.05),
@@ -31,6 +32,9 @@ function loadConfig(env = process.env) {
       fallbackOwnerId: env.RD_FALLBACK_OWNER_ID || '',
     },
   };
+
+  // Demonstração nunca altera nada no RD.
+  if (cfg.demoMode) cfg.rd.dryRun = true;
 
   const missing = [];
   if (!cfg.adminPassword) missing.push('ADMIN_PASSWORD');

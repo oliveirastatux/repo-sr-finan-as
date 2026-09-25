@@ -6,6 +6,7 @@ const { isValidDescriptor } = require('./domain/faceMatch');
 const { AppError } = require('./services');
 const auth = require('./lib/auth');
 const { extractDealId } = require('./integrations/rdCrm');
+const demo = require('./demo');
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const MAX_FACE_SAMPLES = 10;
@@ -74,6 +75,7 @@ function createApp({ cfg, repo, services, logger }) {
     const st = services.status();
     res.json({
       timezone: st.schedule.timezone,
+      demo: st.demo,
       localTime: st.localTime,
       localDate: st.localDate,
       open: st.open,
@@ -236,6 +238,23 @@ function createApp({ cfg, repo, services, logger }) {
       res.json(r);
     }),
   );
+
+  // ---------------- demonstração ----------------
+  const onlyDemo = (req, res, next) => {
+    if (!cfg.demoMode) throw new AppError('Disponível apenas com DEMO_MODE=true.', 403, 'forbidden');
+    next();
+  };
+  admin.post('/demo/seed', onlyDemo, (req, res) => {
+    const st = services.status();
+    const r = demo.seedDemo(repo, { now: new Date(st.now), currentShift: st.active });
+    repo.audit('admin', 'demo.seed', r);
+    res.json(r);
+  });
+  admin.post('/demo/clear', (req, res) => {
+    const removed = demo.clearDemo(repo);
+    repo.audit('admin', 'demo.clear', { removed });
+    res.json({ removed });
+  });
 
   app.use('/api/admin', admin);
 

@@ -12,6 +12,8 @@ const STATUS_LABEL = {
 let token = sessionGet();
 let brokers = [];
 let overviewTimer = null;
+let timeZone = 'America/Sao_Paulo';
+let shiftLabels = {};
 
 function sessionGet() {
   try { return sessionStorage.getItem(TOKEN_KEY) || ''; } catch { return ''; }
@@ -83,9 +85,15 @@ document.querySelectorAll('[role=tab]').forEach((btn) => {
 // ---------------- AGORA ----------------
 async function loadOverview() {
   const o = await api('/api/admin/overview');
-  $('dry-run').classList.toggle('hidden', !o.rdDryRun);
+  $('dry-run').classList.toggle('hidden', !o.rdDryRun || o.demo);
+  $('demo-badge').classList.toggle('hidden', !o.demo);
+  $('demo-card').classList.toggle('hidden', !o.demo);
   $('now-time').textContent = o.localTime;
-  $('now-window').textContent = o.open
+  timeZone = o.schedule.timezone;
+  shiftLabels = Object.fromEntries(o.schedule.shifts.map((sh) => [sh.id, sh.label]));
+  $('now-window').textContent = o.demo
+    ? `Demonstração: check-in ${o.open.label} sempre aberto`
+    : o.open
     ? `Check-in ${o.open.label} aberto até ${o.open.checkinEnd}`
     : o.next ? `Próximo check-in: ${o.next.label} às ${o.next.checkinStart}` : 'Sem janela de check-in hoje';
   $('now-eligible').textContent = o.eligibleIds.length;
@@ -107,7 +115,7 @@ async function loadOverview() {
 
   $('leads-body').innerHTML = o.leads.map((l) => {
     const [cls, label] = STATUS_LABEL[l.status] || ['warn', l.status];
-    const at = new Date(l.created_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    const at = new Date(l.created_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone });
     return `<tr><td>${esc(at)}</td><td>${esc(l.rd_deal_id)}</td><td>${esc(l.broker_name || '—')}</td>
       <td><span class="badge ${cls}" title="${esc(l.error || '')}">${esc(label)}</span></td></tr>`;
   }).join('') || '<tr><td colspan="4" class="muted">Nenhum lead ainda.</td></tr>';
@@ -117,6 +125,23 @@ $('now-shifts').addEventListener('click', async (e) => {
   const id = e.target.dataset.delCheckin;
   if (!id || !confirm('Remover este check-in? O corretor deixa de receber leads neste turno.')) return;
   try { await api(`/api/admin/checkins/${id}`, { method: 'DELETE' }); await loadOverview(); } catch (err) { toast(err.message); }
+});
+
+$('demo-seed').addEventListener('click', async () => {
+  if (!confirm('Gerar corretores fictícios e 10 dias de histórico? Os dados de exemplo anteriores serão substituídos.')) return;
+  try {
+    const r = await api('/api/admin/demo/seed', { method: 'POST' });
+    toast(`${r.brokers} corretores, ${r.checkins} check-ins e ${r.leads} leads de exemplo criados.`);
+    await Promise.all([loadOverview(), loadBrokers()]);
+  } catch (err) { toast(err.message); }
+});
+$('demo-clear').addEventListener('click', async () => {
+  if (!confirm('Apagar todos os dados de exemplo? Os cadastros reais não são afetados.')) return;
+  try {
+    const r = await api('/api/admin/demo/clear', { method: 'POST' });
+    toast(`${r.removed} corretores de exemplo removidos.`);
+    await Promise.all([loadOverview(), loadBrokers()]);
+  } catch (err) { toast(err.message); }
 });
 
 $('simulate').addEventListener('click', async () => {
@@ -268,7 +293,7 @@ async function loadReport() {
   $('report-from').value = r.from;
   $('report-to').value = r.to;
   $('report-body').innerHTML = r.rows.map((x) => `<tr>
-    <td>${esc(x.local_date.split('-').reverse().join('/'))}</td><td>${esc(x.shift_id)}</td><td>${esc(x.local_time)}</td>
+    <td>${esc(x.local_date.split('-').reverse().join('/'))}</td><td>${esc(shiftLabels[x.shift_id] || x.shift_id)}</td><td>${esc(x.local_time)}</td>
     <td>${esc(x.name)}</td><td>${esc(x.manager_name)}</td><td>${esc(x.method)}</td><td>${x.leads}</td></tr>`).join('')
     || '<tr><td colspan="7" class="muted">Sem check-ins no período.</td></tr>';
 }

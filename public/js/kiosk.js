@@ -53,7 +53,9 @@ async function refreshStatus() {
   try {
     status = await api('/api/kiosk/status');
     const w = $('window');
-    if (status.open) {
+    if (status.demo) {
+      w.innerHTML = `<span class="badge warn">DEMONSTRAÇÃO</span> Check-in ${status.open.label} aberto`;
+    } else if (status.open) {
       w.innerHTML = `<span class="badge ok">ABERTO</span> Check-in ${status.open.label} até ${status.open.checkinEnd}`;
     } else if (status.next) {
       w.innerHTML = `<span class="badge warn">FECHADO</span> Próximo: ${status.next.label} às ${status.next.checkinStart}`;

@@ -141,6 +141,20 @@ function nextCheckinShift(schedule, now) {
 }
 
 /**
+ * Modo demonstração: escolhe o turno "mais próximo" do horário atual,
+ * ignorando dias e janelas, para o sistema funcionar em qualquer horário.
+ */
+function demoShift(schedule, now) {
+  const { minutes } = localParts(now, schedule.timezone);
+  const byStart = [...schedule.shifts].sort((a, b) => toMinutes(a.checkinStart) - toMinutes(b.checkinStart));
+  return (
+    byStart.find((sh) => minutes >= toMinutes(sh.checkinStart) && minutes < toMinutes(sh.eligibleUntil)) ||
+    byStart.find((sh) => minutes < toMinutes(sh.eligibleUntil)) ||
+    byStart[byStart.length - 1]
+  );
+}
+
+/**
  * Um check-in dá aptidão se foi feito hoje, no turno em vigor, e o turno
  * ainda não expirou.
  */
@@ -158,5 +172,6 @@ module.exports = {
   openCheckinShift,
   activeShift,
   nextCheckinShift,
+  demoShift,
   isCheckinEligible,
 };

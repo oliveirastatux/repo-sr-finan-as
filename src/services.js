@@ -26,10 +26,18 @@ function createServices({ repo, rd, cfg, logger, clock = () => new Date() }) {
     const sched = repo.getSchedule();
     const t = now();
     const lp = schedule.localParts(t, sched.timezone);
-    const open = schedule.openCheckinShift(sched, t);
-    const active = schedule.activeShift(sched, t);
-    const next = schedule.nextCheckinShift(sched, t);
-    return { now: t.toISOString(), localDate: lp.date, localTime: lp.time, schedule: sched, open, active, next };
+    const base = { now: t.toISOString(), localDate: lp.date, localTime: lp.time, schedule: sched, demo: cfg.demoMode };
+    if (cfg.demoMode) {
+      // Demonstração: check-in sempre aberto, para apresentar a qualquer hora.
+      const shift = schedule.demoShift(sched, t);
+      return { ...base, open: shift, active: shift, next: null };
+    }
+    return {
+      ...base,
+      open: schedule.openCheckinShift(sched, t),
+      active: schedule.activeShift(sched, t),
+      next: schedule.nextCheckinShift(sched, t),
+    };
   }
 
   /** Corretores aptos a receber lead neste momento. */

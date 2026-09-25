@@ -62,3 +62,11 @@ test('validação recusa configurações incoerentes', () => {
   assert.throws(() => s.validateSchedule({ timezone: 'Marte/Base' }), /Fuso/);
   assert.throws(() => s.validateSchedule({ shifts: [{ id: 'x', checkinStart: '9h', checkinEnd: '09:30', eligibleUntil: '12:00' }] }), /HH:MM/);
 });
+
+test('modo demonstração escolhe o turno mais próximo em qualquer horário', () => {
+  assert.equal(s.demoShift(sched, at('07:00')).id, 'manha');
+  assert.equal(s.demoShift(sched, at('11:00')).id, 'manha');
+  assert.equal(s.demoShift(sched, at('14:30')).id, 'tarde');
+  assert.equal(s.demoShift(sched, at('22:00')).id, 'tarde');
+  assert.equal(s.demoShift(sched, at('11:00', '2026-09-27')).id, 'manha'); // domingo também
+});

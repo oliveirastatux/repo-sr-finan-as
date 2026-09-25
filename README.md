@@ -46,6 +46,32 @@ RD Station CRM ◄── PUT /deals/{id} owner_id  (troca o responsável)
 - **Idempotência:** se o RD reenviar o mesmo webhook, o lead não é redistribuído.
   Só se a tentativa anterior tiver falhado.
 
+## Modo demonstração (para apresentar à empresa)
+
+Com `DEMO_MODE=true`:
+- o check-in fica **aberto em qualquer horário** (apresentação às 16h funciona);
+- **nada é enviado ao RD**, e a simulação é forçada mesmo que haja token;
+- o painel ganha os botões **"Gerar dados de exemplo"** (12 corretores fictícios,
+  3 gerentes e 10 dias de histórico) e **"Apagar dados de exemplo"**.
+
+Roteiro sugerido para a reunião:
+1. Gere os dados de exemplo e mostre o painel cheio e o relatório no Excel.
+2. Cadastre o rosto de alguém da diretoria na hora.
+3. Essa pessoa faz o check-in no tablet, e o painel mostra "apto" na hora.
+4. Clique em "Simular lead" e mostre o rodízio.
+
+Prints: [painel](docs/prints/demo-agora.png) · [relatório](docs/prints/demo-relatorio.png)
+
+## Publicar para teste (HTTPS)
+
+O projeto tem `Dockerfile`. Qualquer hospedagem com **disco persistente**
+montado em `/data` serve:
+- **Railway:** New Project → Deploy from GitHub → adicione um Volume em `/data`
+  e as variáveis do `.env.example` (com `DEMO_MODE=true`).
+- **Render / Fly.io:** o mesmo processo, com um disco persistente.
+
+Sem disco persistente, os cadastros somem a cada reinício.
+
 ## Rodando
 
 Requisitos: Node.js 22.13 ou superior.

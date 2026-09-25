@@ -10,6 +10,8 @@ const { loadConfig } = require('../src/config');
 
 const vec = (v) => new Array(128).fill(v);
 const ENV = {
+  RD_DRY_RUN: 'false',
+  RD_ACCESS_TOKEN: 'token-teste',
   ADMIN_PASSWORD: 'senha-teste',
   SESSION_SECRET: 'x'.repeat(40),
   KIOSK_TOKEN: 'k'.repeat(20),
@@ -18,13 +20,13 @@ const ENV = {
   DB_PATH: ':memory:',
 };
 
-async function setup({ rdFails = false } = {}) {
-  const cfg = loadConfig(ENV);
+async function setup({ rdFails = false, env = {} } = {}) {
+  const cfg = loadConfig({ ...ENV, ...env });
   const repo = openDb(':memory:');
   let current = new Date('2026-09-25T09:45:00-03:00');
   const calls = [];
   const rd = {
-    dryRun: false,
+    dryRun: cfg.rd.dryRun,
     async assignDealOwner(dealId, ownerId) {
       calls.push({ dealId, ownerId });
       if (rdFails) throw Object.assign(new Error('RD fora do ar'), { status: 503 });
@@ -186,6 +188,53 @@ test('segurança: painel exige login, cadastro facial exige consentimento, CSV n
     await t.call('/api/kiosk/checkin', { method: 'POST', token: t.kiosk, body: { descriptor: vec(0), liveness: true } });
     const csv = await t.call('/api/admin/report?format=csv', { token: t.admin });
     assert.match(csv.body, /'=HYPERLINK/);
+  } finally {
+    await t.close();
+  }
+});
+
+test('modo demonstração: check-in fora do horário, dados de exemplo e limpeza', async () => {
+  const t = await setup({ env: { DEMO_MODE: 'true' } });
+  try {
+    t.setTime('2026-09-27T21:30:00-03:00'); // domingo à noite
+    await createBroker(t, 'Real', 0, 'rd-real');
+    const c = await t.call('/api/kiosk/checkin', { method: 'POST', token: t.kiosk, body: { descriptor: vec(0), liveness: true } });
+    assert.equal(c.status, 200);
+    assert.equal(c.body.shift.id, 'tarde');
+
+    const seed = await t.call('/api/admin/demo/seed', { method: 'POST', token: t.admin });
+    assert.equal(seed.status, 200);
+    assert.equal(seed.body.brokers, 12);
+    assert.ok(seed.body.checkins > 100);
+
+    const ov = await t.call('/api/admin/overview', { token: t.admin });
+    assert.equal(ov.body.demo, true);
+    assert.equal(ov.body.eligibleIds.length, 9); // 8 de exemplo + o real
+
+    const rep = await t.call('/api/admin/report?from=2026-09-01&to=2026-09-30', { token: t.admin });
+    assert.ok(rep.body.rows.length > 100);
+
+    // Gerar de novo substitui, não duplica
+    await t.call('/api/admin/demo/seed', { method: 'POST', token: t.admin });
+    assert.equal((await t.call('/api/admin/brokers', { token: t.admin })).body.length, 13);
+
+    const clear = await t.call('/api/admin/demo/clear', { method: 'POST', token: t.admin });
+    assert.equal(clear.body.removed, 12);
+    const left = (await t.call('/api/admin/brokers', { token: t.admin })).body;
+    assert.deepEqual(left.map((b) => b.name), ['Real']);
+
+    const lead = await t.call('/api/admin/leads/simulate', { method: 'POST', token: t.admin });
+    assert.equal(lead.body.lead.status, 'dry_run');
+    assert.equal(t.calls.length, 1); // cliente RD falso foi chamado, mas config força simulação
+  } finally {
+    await t.close();
+  }
+});
+
+test('dados de exemplo bloqueados fora do modo demonstração', async () => {
+  const t = await setup();
+  try {
+    assert.equal((await t.call('/api/admin/demo/seed', { method: 'POST', token: t.admin })).status, 403);
   } finally {
     await t.close();
   }

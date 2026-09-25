@@ -22,6 +22,7 @@
       <header class="row" style="align-items:center">
         <h1 style="margin:0">Painel do Plantão</h1>
         <span id="dry-run" class="badge warn hidden" title="RD_DRY_RUN=true: nenhum lead é alterado no RD">Modo simulação do RD</span>
+        <span id="demo-badge" class="badge ok hidden" title="DEMO_MODE=true: check-in sempre aberto e nada é enviado ao RD">Modo demonstração</span>
         <button id="logout">Sair</button>
       </header>
       <nav role="tablist">
@@ -33,6 +34,14 @@
 
       <!-- AGORA -->
       <section data-panel="now" class="stack">
+        <div id="demo-card" class="card stack hidden">
+          <strong>Modo demonstração</strong>
+          <p class="muted" style="margin:0">O check-in fica aberto em qualquer horário e nenhum lead é enviado ao RD. Gere dados fictícios para mostrar o painel e os relatórios cheios. Apague tudo antes do uso real.</p>
+          <div class="row" style="justify-content:start">
+            <button id="demo-seed" class="primary">Gerar dados de exemplo</button>
+            <button id="demo-clear" class="danger">Apagar dados de exemplo</button>
+          </div>
+        </div>
         <div class="grid">
           <div class="card"><div class="muted">Horário local</div><div class="stat" id="now-time">--:--</div><div id="now-window" class="muted"></div></div>
           <div class="card"><div class="muted">Aptos a receber lead agora</div><div class="stat" id="now-eligible">0</div><div id="now-shift" class="muted"></div></div>
